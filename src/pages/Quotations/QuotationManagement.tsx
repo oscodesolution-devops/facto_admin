@@ -6,6 +6,7 @@ import { ThreeDots } from "react-loader-spinner";
 import axios from "axios";
 import { showError, showSucccess } from "@/utils/toast";
 import MultiStepQuotationForm from "@/components/Quotation/AddQuotationForm";
+import { BASE_URL } from "@/utils/apiConstants";
 
 interface QuotationData {
   _id: string;
@@ -24,24 +25,30 @@ interface QuotationData {
 
 const QuotationManagement: React.FC = () => {
   const [quotations, setQuotations] = useState<QuotationData[]>([]);
-  const [filteredQuotations, setFilteredQuotations] = useState<QuotationData[]>([]);
+  const [filteredQuotations, setFilteredQuotations] = useState<QuotationData[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
-  const [priceUpdates, setPriceUpdates] = useState<{ [key: string]: number }>({});
+  const [priceUpdates, setPriceUpdates] = useState<{ [key: string]: number }>(
+    {}
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-
   const fetchQuotations = async (page: number = 1) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await axios.get(`https://admin.facto.org.in/api/v1/admin/quotation?page=${page}&limit=10`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `${BASE_URL}/admin/quotation?page=${page}&limit=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const { quotations, totalPages } = response.data.data;
       setQuotations(quotations);
@@ -66,7 +73,7 @@ const QuotationManagement: React.FC = () => {
       }
 
       await axios.put(
-        `https://admin.facto.org.in/api/v1/admin/quotation/${quotationId}`,
+        `${BASE_URL}/admin/quotation/${quotationId}`,
         { totalPrice },
         {
           headers: {
@@ -109,7 +116,7 @@ const QuotationManagement: React.FC = () => {
     const filtered = quotations.filter(
       (q) =>
         q.userId.phoneNumber.includes(lowerCaseTerm) ||
-        q.subServiceId.title.toLowerCase().includes(lowerCaseTerm)
+        q.subServiceId?.title.toLowerCase().includes(lowerCaseTerm)
     );
     setFilteredQuotations(filtered);
   };
@@ -131,7 +138,9 @@ const QuotationManagement: React.FC = () => {
       >
         Previous
       </Button>
-      <span>Page {currentPage} of {totalPages}</span>
+      <span>
+        Page {currentPage} of {totalPages}
+      </span>
       <Button
         onClick={() => {
           if (currentPage < totalPages) {
@@ -158,14 +167,11 @@ const QuotationManagement: React.FC = () => {
           onChange={(e) => handleSearch(e.target.value)}
           className="w-full md:w-1/3"
         />
-         <Button
-          onClick={() => setShowForm(!showForm)}
-          className="mt-4 md:mt-0"
-        >
+        <Button onClick={() => setShowForm(!showForm)} className="mt-4 md:mt-0">
           {showForm ? "Hide Form" : "Create New Quotation"}
         </Button>
       </div>
-      {showForm && <MultiStepQuotationForm setShowForm={setShowForm}/>}
+      {showForm && <MultiStepQuotationForm setShowForm={setShowForm} />}
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <ThreeDots color="#253483" />
@@ -179,7 +185,7 @@ const QuotationManagement: React.FC = () => {
                 className="bg-white shadow-md rounded-lg p-4 border"
               >
                 <h3 className="text-lg font-semibold mb-2">
-                  {quotation?.subServiceId.title}
+                  {quotation?.subServiceId?.title}
                 </h3>
                 <p className="text-gray-600 mb-2">
                   Phone Number: {quotation?.userId?.phoneNumber}
@@ -200,7 +206,9 @@ const QuotationManagement: React.FC = () => {
                     type="number"
                     placeholder="New Price"
                     value={priceUpdates[quotation._id] || ""}
-                    onChange={(e) => handlePriceChange(quotation._id, e.target.value)}
+                    onChange={(e) =>
+                      handlePriceChange(quotation._id, e.target.value)
+                    }
                     className="flex-grow"
                   />
                   <Button
