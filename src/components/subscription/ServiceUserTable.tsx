@@ -13,47 +13,48 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { ServiceUserDetails } from "./ServiceUserDetails";
+import { saveAs } from "file-saver";
 
 const users = [
   {
     id: "USR001",
     name: "Alice Johnson",
     email: "alice@example.com",
-    contact: "+1-555-0100",
+    contact: "9876543210",
     subServices: ["GST1", "GST3"],
-    assignedMember: "employee1"
+    assignedMember: "employee1",
   },
   {
     id: "USR002",
     name: "Bob Smith",
     email: "bob@example.com",
-    contact: "+1-555-0200",
+    contact: "9876543211",
     subServices: ["GST2", "GST4"],
-    assignedMember: "employee2"
+    assignedMember: "employee2",
   },
   {
     id: "USR003",
     name: "Charlie Brown",
     email: "charlie@example.com",
-    contact: "+1-555-0300",
+    contact: "9876543212",
     subServices: ["GST1"],
-    assignedMember: "employee1"
+    assignedMember: "employee1",
   },
   {
     id: "USR004",
     name: "Diana Prince",
     email: "diana@example.com",
-    contact: "+1-555-0400",
+    contact: "9876543213",
     subServices: ["GST5"],
-    assignedMember: "employee3"
+    assignedMember: "employee3",
   },
   {
     id: "USR005",
     name: "Eve Taylor",
     email: "eve@example.com",
-    contact: "+1-555-0500",
+    contact: "9876543214",
     subServices: ["GST3", "GST4"],
-    assignedMember: "employee1"
+    assignedMember: "employee1",
   },
 ];
 
@@ -94,22 +95,20 @@ export default function ServiceUserTable() {
   const openModal = () => setIsDialogOpen(true);
   const closeModal = () => setIsDialogOpen(false);
 
-
- // Filter users based on the search term and selected sub-service
-const filteredUsers = users.filter((user) => {
+  // Filter users based on the search term and selected sub-service
+  const filteredUsers = users.filter((user) => {
     // Convert all user field values to strings and check for a match
     const matchesSearch = Object.values(user)
       .map((value) => String(value).toLowerCase())
       .some((value) => value.includes(searchTerm.toLowerCase()));
-  
+
     // Check if the user matches the selected sub-service
     const matchesSubService =
       activeSubService === "All Users" ||
       user.subServices.includes(activeSubService);
-  
+
     return matchesSearch && matchesSubService;
   });
-  
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -128,8 +127,27 @@ const filteredUsers = users.filter((user) => {
   };
 
   const handleExport = () => {
-    const selectedData = users.filter((user) => selectedUsers.includes(user.id));
+    const selectedData = users.filter((user) =>
+      selectedUsers.includes(user.id)
+    );
     console.log("Exporting users:", selectedData);
+    const headers = `"Email","Full Name","Phone Number","ID","Assigned Number"`;
+    const rows = selectedData
+      .map((user) => {
+        const email = (user.email || "").replace(/"/g, '""');
+        const fullName = (user.name || "").replace(/"/g, '""');
+        const phoneNumber = (user.contact.toString() || "").replace(/"/g, '""');
+        const id = user?.id || "";
+        const assignedMember = user.assignedMember || "";
+
+        return `"${email}","${fullName}","${phoneNumber}","${id}","${assignedMember}"`;
+      })
+      .join("\n");
+
+    const csvContent = `${headers}\n${rows}`;
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+
+    saveAs(blob, "users.csv");
   };
 
   return (
@@ -141,7 +159,9 @@ const filteredUsers = users.filter((user) => {
             key={service}
             onClick={() => setActiveSubService(service)}
             className={`cursor-pointer rounded-lg px-3 py-2 ${
-              activeSubService === service ? "bg-[#253483] text-white" : "bg-gray-200"
+              activeSubService === service
+                ? "bg-[#253483] text-white"
+                : "bg-gray-200"
             }`}
           >
             {service}
@@ -158,17 +178,16 @@ const filteredUsers = users.filter((user) => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
         />
-        <Button
-          onClick={handleExport}
-          disabled={selectedUsers.length === 0}
-        >
+        <Button onClick={handleExport} disabled={selectedUsers.length === 0}>
           Export Selected Users
         </Button>
       </div>
 
       {/* User Details Table */}
       <Table className="mt-4">
-        <TableCaption>A list of users associated with this service.</TableCaption>
+        <TableCaption>
+          A list of users associated with this service.
+        </TableCaption>
         <TableHeader className=" bg-[#f4f0f0] p-5">
           <TableRow>
             <TableHead className="w-[50px]">
@@ -196,7 +215,7 @@ const filteredUsers = users.filter((user) => {
               <TableCell>
                 <Checkbox
                   checked={selectedUsers.includes(user.id)}
-                  onCheckedChange={(checked:boolean) =>
+                  onCheckedChange={(checked: boolean) =>
                     handleSelectUser(user.id, checked)
                   }
                   aria-label={`Select user ${user.id}`}
@@ -209,7 +228,7 @@ const filteredUsers = users.filter((user) => {
               <TableCell>{user.contact}</TableCell>
               <TableCell>{user.assignedMember}</TableCell>
               <TableCell>
-                <Button onClick={()=>openModal()}>View Details</Button>
+                <Button onClick={() => openModal()}>View Details</Button>
               </TableCell>
             </TableRow>
           ))}
@@ -223,8 +242,8 @@ const filteredUsers = users.filter((user) => {
         </TableFooter>
       </Table>
 
-      <ServiceUserDetails 
-         isOpen={isDialogOpen}
+      <ServiceUserDetails
+        isOpen={isDialogOpen}
         onClose={closeModal}
         userProfile={userProfile}
         serviceDetails={serviceDetails}
