@@ -1,14 +1,13 @@
-import { api } from '../../config/axiosConfig';
-import { defineCancelApiObject } from '../../utils/axiosUtils';
+import { api } from "../../config/axiosConfig";
+import { defineCancelApiObject } from "../../utils/axiosUtils";
 const cancelApiObject = defineCancelApiObject(api);
 export const SUBSERVICES = {
-
-    GetSubServices: async (id:string,cancel = false) => {
+  GetSubServices: async (id: string, cancel = false) => {
     const response = await api.request({
       url: `/admin/sub-services/${id}`,
-      method: 'GET',
+      method: "GET",
       headers: {
-        Authorization: `Bearer ` + localStorage.getItem('token'),
+        Authorization: `Bearer ` + localStorage.getItem("token"),
       },
       signal: cancel
         ? cancelApiObject.Get.handleRequestCancellation().signal
@@ -17,32 +16,32 @@ export const SUBSERVICES = {
     console.log(response.data);
     return response.data;
   },
-  PostSubService: async (id:string,data: any, cancel = false) => {
-    console.log("This is new data",data)
+  PostSubService: async (id: string, data: any, cancel = false) => {
+    console.log("This is new data", data);
 
     const response = await api.request({
       url: `/admin/sub-service/${id}`,
-      method: 'POST',
+      method: "POST",
       data: data,
       headers: {
-        Authorization: `Bearer ` + localStorage.getItem('token'),
+        Authorization: `Bearer ` + localStorage.getItem("token"),
       },
       signal: cancel
         ? cancelApiObject.PostEmployee.handleRequestCancellation().signal
         : undefined,
     });
-    console.log("This is response data",response.data)
+    console.log("This is response data", response.data);
 
     return response.data;
   },
 
-  DeactivateSubService: async (id:string, cancel = false) => {
-    console.log("toggle",id);
+  DeactivateSubService: async (id: string, cancel = false) => {
+    console.log("toggle", id);
     const response = await api.request({
       url: `/admin/sub-service/toggle/${id}`,
-      method: 'GET',
+      method: "GET",
       headers: {
-        Authorization: `Bearer ` + localStorage.getItem('token'),
+        Authorization: `Bearer ` + localStorage.getItem("token"),
       },
       signal: cancel
         ? cancelApiObject.GetById.handleRequestCancellation().signal
@@ -55,10 +54,10 @@ export const SUBSERVICES = {
     const { _id, ...rest } = data;
     const response = await api.request({
       url: `/admin/sub-service/${data._id}`,
-      method: 'PUT',
+      method: "PUT",
       data: rest,
       headers: {
-        Authorization: `Bearer ` + localStorage.getItem('token'),
+        Authorization: `Bearer ` + localStorage.getItem("token"),
       },
       signal: cancel
         ? cancelApiObject.UpdateEmployee.handleRequestCancellation().signal
@@ -71,9 +70,9 @@ export const SUBSERVICES = {
   DeleteSubService: async (id: string, cancel = false) => {
     const response = await api.request({
       url: `/admin/sub-service/${id}`,
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        Authorization: `Bearer ` + localStorage.getItem('token'),
+        Authorization: `Bearer ` + localStorage.getItem("token"),
       },
       signal: cancel
         ? cancelApiObject.DeleteEmployee.handleRequestCancellation().signal
@@ -82,4 +81,4 @@ export const SUBSERVICES = {
 
     return response.data;
   },
-}
+};
