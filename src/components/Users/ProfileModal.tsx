@@ -19,7 +19,12 @@ interface ProfileModalProps {
   userId: string;
 }
 
-export function ProfileModal({ isOpen, onClose, userId ,fetchData}: ProfileModalProps) {
+export function ProfileModal({
+  isOpen,
+  onClose,
+  userId,
+  fetchData,
+}: ProfileModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     _id: "",
@@ -31,7 +36,6 @@ export function ProfileModal({ isOpen, onClose, userId ,fetchData}: ProfileModal
     dateOfBirth: "",
   });
 
-  
   const fetchUserData = async (id: string) => {
     try {
       const response = await USERS.GetById(id);
@@ -55,9 +59,9 @@ export function ProfileModal({ isOpen, onClose, userId ,fetchData}: ProfileModal
   };
 
   const handleEditClick = () => {
-    setIsEditing(true); 
+    setIsEditing(true);
   };
-  
+
   const handleSaveClick = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -70,29 +74,29 @@ export function ProfileModal({ isOpen, onClose, userId ,fetchData}: ProfileModal
         panNumber: formData.panNumber,
         dateOfBirth: formData.dateOfBirth,
       });
-  
+
       if (response.success) {
-        setIsEditing(false); 
+        setIsEditing(false);
         showSucccess(response.message || "Profile updated successfully");
-        fetchUserData(userId); 
+        fetchUserData(userId);
         fetchData();
       } else {
         showError(response.message || "Failed to update profile");
       }
     } catch (error: any) {
       console.error("Error during update:", error);
-      showError(error.response?.data?.message || "An error occurred while updating");
+      showError(
+        error.response?.data?.message || "An error occurred while updating"
+      );
     }
   };
-  
+
   // if (!formData.fullName && !isEditing) {
   //   return <p>Loading...</p>;
   // }
-  
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      
       <DialogContent className="max-w-4xl p-11 font-poppins">
         <DialogTitle>Users Profile</DialogTitle>
         <DialogHeader>
@@ -129,7 +133,9 @@ export function ProfileModal({ isOpen, onClose, userId ,fetchData}: ProfileModal
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-1">Email Address</label>
+            <label className="block text-sm font-medium mb-1">
+              Email Address
+            </label>
             <Input
               name="email"
               placeholder="example@gmail.com"
@@ -140,7 +146,9 @@ export function ProfileModal({ isOpen, onClose, userId ,fetchData}: ProfileModal
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Phone Number</label>
+            <label className="block text-sm font-medium mb-1">
+              Phone Number
+            </label>
             <Input
               name="phoneNumber"
               placeholder="Phone number"
@@ -151,20 +159,25 @@ export function ProfileModal({ isOpen, onClose, userId ,fetchData}: ProfileModal
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Date of Birth</label>
+            <label className="block text-sm font-medium mb-1">
+              Date of Birth
+            </label>
             <Input
-            name="dateOfBirth"
-            type="date"
-            placeholder="Date of Birth"
-            value={formData.dateOfBirth}
-            onChange={handleInputChange}
-            disabled={!isEditing}
-
+              name="dateOfBirth"
+              type="date"
+              placeholder="Date of Birth"
+              value={
+                formData.dateOfBirth ? formData.dateOfBirth.split("T")[0] : ""
+              }
+              onChange={handleInputChange}
+              disabled={!isEditing}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Aadhar Number</label>
+            <label className="block text-sm font-medium mb-1">
+              Aadhar Number
+            </label>
             <Input
               name="aadharNumber"
               placeholder="Aadhar Number"
@@ -197,7 +210,6 @@ export function ProfileModal({ isOpen, onClose, userId ,fetchData}: ProfileModal
           )}
         </DialogFooter>
       </DialogContent>
-      
     </Dialog>
   );
 }
