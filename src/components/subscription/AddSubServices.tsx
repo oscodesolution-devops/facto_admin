@@ -44,6 +44,10 @@ interface SubService {
   period: "monthly" | "quarterly" | "half_yearly" | "yearly" | "one_time";
   isActive: boolean;
   requests: Request[];
+  pricingStructure: {
+    price: number;
+    period: "monthly" | "quarterly" | "half_yearly" | "yearly" | "one_time";
+  }[];
 }
 
 interface AddSubServicesProps {
@@ -54,12 +58,12 @@ interface AddSubServicesProps {
   subServices?: any;
 }
 
-export function AddSubServices({ 
-  isOpen, 
-  onClose, 
-  id, 
-  fetchSubServices, 
-  subServices 
+export function AddSubServices({
+  isOpen,
+  onClose,
+  id,
+  fetchSubServices,
+  subServices,
 }: AddSubServicesProps) {
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -71,6 +75,7 @@ export function AddSubServices({
     period: "monthly",
     isActive: true,
     requests: [],
+    pricingStructure: [],
   });
 
   const [featureInput, setFeatureInput] = useState<string>("");
@@ -88,6 +93,24 @@ export function AddSubServices({
     needsQuotation: false,
   });
 
+  const [isMonthlyBillingChecked, setIsMonthlyBillingChecked] =
+    useState<boolean>(false);
+  const [isQuarterlyBillingChecked, setIsQuarterlyBillingChecked] =
+    useState<boolean>(false);
+  const [isHalfYearlyBillingChecked, setIsHalfYearlyBillingChecked] =
+    useState<boolean>(false);
+  const [isYearlyBillingChecked, setIsYearlyBillingChecked] =
+    useState<boolean>(false);
+  const [isOneTimeBillingChecked, setIsOneTimeBillingChecked] =
+    useState<boolean>(false);
+  const [monthlyBillingPrice, setMonthlyBillingPrice] = useState<string>("");
+  const [quarterlyBillingPrice, setQuarterlyBillingPrice] =
+    useState<string>("");
+  const [halfYearlyBillingPrice, setHalfYearlyBillingPrice] =
+    useState<string>("");
+  const [yearlyBillingPrice, setYearlyBillingPrice] = useState<string>("");
+  const [oneTimeBillingPrice, setOneTimeBillingPrice] = useState<string>("");
+
   useEffect(() => {
     if (subServices) {
       setFormData({
@@ -98,8 +121,36 @@ export function AddSubServices({
         period: subServices.period || "monthly",
         isActive: subServices.isActive ?? true,
         requests: subServices.requests || [],
+        pricingStructure: subServices.pricingStructure || [],
       });
       setIsEdit(true);
+
+      subServices.pricingStructure.forEach(
+        (pricing: { period: string; price: number }) => {
+          switch (pricing.period) {
+            case "monthly":
+              setIsMonthlyBillingChecked(true);
+              setMonthlyBillingPrice(pricing.price.toString());
+              break;
+            case "quarterly":
+              setIsQuarterlyBillingChecked(true);
+              setQuarterlyBillingPrice(pricing.price.toString());
+              break;
+            case "half_yearly":
+              setIsHalfYearlyBillingChecked(true);
+              setHalfYearlyBillingPrice(pricing.price.toString());
+              break;
+            case "yearly":
+              setIsYearlyBillingChecked(true);
+              setYearlyBillingPrice(pricing.price.toString());
+              break;
+            case "one_time":
+              setIsOneTimeBillingChecked(true);
+              setOneTimeBillingPrice(pricing.price.toString());
+              break;
+          }
+        }
+      );
     } else {
       resetForm();
     }
@@ -114,7 +165,19 @@ export function AddSubServices({
       period: "monthly",
       isActive: true,
       requests: [],
+      pricingStructure: [],
     });
+    setIsMonthlyBillingChecked(false);
+    setIsQuarterlyBillingChecked(false);
+    setIsHalfYearlyBillingChecked(false);
+    setIsYearlyBillingChecked(false);
+    setIsOneTimeBillingChecked(false);
+    setMonthlyBillingPrice("");
+    setQuarterlyBillingPrice("");
+    setHalfYearlyBillingPrice("");
+    setYearlyBillingPrice("");
+    setOneTimeBillingPrice("");
+
     setIsEdit(false);
   };
 
@@ -124,7 +187,9 @@ export function AddSubServices({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -155,10 +220,9 @@ export function AddSubServices({
       ...prev,
       [name]: value,
       // Reset options when switching from dropdown to checkbox
-      ...(name === 'inputType' && value === 'checkbox' ? { options: [] } : {}),
+      ...(name === "inputType" && value === "checkbox" ? { options: [] } : {}),
     }));
   };
-
 
   const handleOptionInputChange = (name: string, value: any) => {
     setOptionInput((prev) => ({
@@ -173,10 +237,10 @@ export function AddSubServices({
         ...prev,
         options: [...(prev.options || []), optionInput],
       }));
-      setOptionInput({ 
+      setOptionInput({
         name: "",
         priceModifier: 0,
-        needsQuotation: false
+        needsQuotation: false,
       });
     }
   };
@@ -215,6 +279,7 @@ export function AddSubServices({
     e.preventDefault();
     setLoading(true);
     try {
+      console.log(formData);
       await SUBSERVICES.PostSubService(id, formData);
       fetchSubServices();
       onClose();
@@ -238,9 +303,10 @@ export function AddSubServices({
     }
 
     try {
+      console.log("form data", formData);
       const response = await SUBSERVICES.UpdateSubService({
         _id: subServices._id,
-        ...formData
+        ...formData,
       });
 
       if (response.success) {
@@ -252,25 +318,54 @@ export function AddSubServices({
       }
     } catch (error: any) {
       console.error("Error during edit:", error);
-      showError(error.response?.data?.message || "An error occurred while updating");
+      showError(
+        error.response?.data?.message || "An error occurred while updating"
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const handlePricingStructureChange = (period: string, value: string) => {
+    setFormData((prev) => {
+      const newPricingStructure = prev.pricingStructure.filter(
+        (pricing) => pricing.period !== period
+      );
+      if (value) {
+        newPricingStructure.push({
+          price: parseFloat(value),
+          period: period as
+            | "quarterly"
+            | "monthly"
+            | "half_yearly"
+            | "yearly"
+            | "one_time",
+        });
+      }
+      console.log("new pricing structure", newPricingStructure);
+      return { ...prev, pricingStructure: newPricingStructure };
+    });
+  };
+
   return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="rounded-md font-outfit max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-base font-inter">
-              {isEdit ? "Edit Sub Service" : "Add New Sub Service"}
-            </DialogTitle>
-          </DialogHeader>
-          <form
-            className="space-y-4 border border-gray-300 p-5 rounded-md"
-            onSubmit={isEdit ? handleEditSubmit : handleSubmit}
-          >
-            <ScrollArea className="h-[500px] p-2">
+    <Dialog
+      open={isOpen}
+      onOpenChange={() => {
+        resetForm();
+        onClose();
+      }}
+    >
+      <DialogContent className="rounded-md font-outfit max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-base font-inter">
+            {isEdit ? "Edit Sub Service" : "Add New Sub Service"}
+          </DialogTitle>
+        </DialogHeader>
+        <form
+          className="space-y-4 border border-gray-300 p-5 rounded-md"
+          onSubmit={isEdit ? handleEditSubmit : handleSubmit}
+        >
+          <ScrollArea className="h-[500px] p-2">
             <div className="flex flex-col p-2 space-y-2">
               <label htmlFor="title" className="text-sm font-medium">
                 Sub Service Title
@@ -314,8 +409,8 @@ export function AddSubServices({
                   onChange={(e) => setFeatureInput(e.target.value)}
                   className="rounded-md"
                 />
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   onClick={handleFeatureAdd}
                   disabled={!featureInput.trim()}
                 >
@@ -326,10 +421,10 @@ export function AddSubServices({
                 {formData.features.map((feature, index) => (
                   <li key={index} className="flex justify-between items-center">
                     <span>{feature}</span>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => handleFeatureRemove(index)}
                     >
                       <X className="w-4 h-4" />
@@ -350,18 +445,23 @@ export function AddSubServices({
                     name="name"
                     placeholder="Request Name"
                     value={requestInput.name}
-                    onChange={(e) => handleRequestInputChange("name", e.target.value)}
+                    onChange={(e) =>
+                      handleRequestInputChange("name", e.target.value)
+                    }
                     className="rounded-md"
                   />
-                  
+
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium">Input Type</label>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm">Checkbox</span>
                       <Switch
                         checked={requestInput.inputType === "dropdown"}
-                        onCheckedChange={(checked) => 
-                          handleRequestInputChange("inputType", checked ? "dropdown" : "checkbox")
+                        onCheckedChange={(checked) =>
+                          handleRequestInputChange(
+                            "inputType",
+                            checked ? "dropdown" : "checkbox"
+                          )
                         }
                       />
                       <span className="text-sm">Dropdown</span>
@@ -376,14 +476,21 @@ export function AddSubServices({
                         placeholder="Price Modifier"
                         type="number"
                         value={requestInput.priceModifier}
-                        onChange={(e) => handleRequestInputChange("priceModifier", parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          handleRequestInputChange(
+                            "priceModifier",
+                            parseFloat(e.target.value)
+                          )
+                        }
                         className="rounded-md"
                       />
                       <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium">Needs Quotation</label>
+                        <label className="text-sm font-medium">
+                          Needs Quotation
+                        </label>
                         <Switch
                           checked={requestInput.needsQuotation}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             handleRequestInputChange("needsQuotation", checked)
                           }
                         />
@@ -400,7 +507,9 @@ export function AddSubServices({
                         name="name"
                         placeholder="Option Name"
                         value={optionInput.name}
-                        onChange={(e) => handleOptionInputChange("name", e.target.value)}
+                        onChange={(e) =>
+                          handleOptionInputChange("name", e.target.value)
+                        }
                         className="rounded-md"
                       />
                       <Input
@@ -409,14 +518,21 @@ export function AddSubServices({
                         placeholder="Option Price Modifier"
                         type="number"
                         value={optionInput.priceModifier}
-                        onChange={(e) => handleOptionInputChange("priceModifier", e.target.value)}
+                        onChange={(e) =>
+                          handleOptionInputChange(
+                            "priceModifier",
+                            e.target.value
+                          )
+                        }
                         className="rounded-md"
                       />
                       <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium">Option Needs Quotation</label>
+                        <label className="text-sm font-medium">
+                          Option Needs Quotation
+                        </label>
                         <Switch
                           checked={optionInput.needsQuotation}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             handleOptionInputChange("needsQuotation", checked)
                           }
                         />
@@ -432,7 +548,10 @@ export function AddSubServices({
                     </div>
                     <ul className="list-disc pl-5">
                       {requestInput.options?.map((option, index) => (
-                        <li key={index} className="flex justify-between items-center">
+                        <li
+                          key={index}
+                          className="flex justify-between items-center"
+                        >
                           <div>
                             <span className="font-medium">{option.name}</span>
                             <span className="ml-2">{`(Price Modifier: ${option.priceModifier})`}</span>
@@ -457,7 +576,12 @@ export function AddSubServices({
                 <Button
                   type="button"
                   onClick={handleRequestAdd}
-                  disabled={!requestInput.name.trim() || (requestInput.inputType === "dropdown" && (!requestInput.options || requestInput.options.length === 0))}
+                  disabled={
+                    !requestInput.name.trim() ||
+                    (requestInput.inputType === "dropdown" &&
+                      (!requestInput.options ||
+                        requestInput.options.length === 0))
+                  }
                   className="w-full"
                 >
                   Add Request
@@ -471,22 +595,33 @@ export function AddSubServices({
                       <p className="font-medium">{request.name}</p>
                       <p className="text-sm text-gray-600">
                         {`Type: ${request.inputType}`}
-                        {request.inputType === 'checkbox' && 
-                          `, Price Modifier: ${request.priceModifier}, Quotation: ${request.needsQuotation ? "Yes" : "No"}`
-                        }
+                        {request.inputType === "checkbox" &&
+                          `, Price Modifier: ${
+                            request.priceModifier
+                          }, Quotation: ${
+                            request.needsQuotation ? "Yes" : "No"
+                          }`}
                       </p>
-                      {request.inputType === 'dropdown' && request.options && request.options.length > 0 && (
-                        <div className="ml-4 text-sm text-gray-500">
-                          <p>Options:</p>
-                          <ul className="list-disc ml-4">
-                            {request.options.map((option, idx) => (
-                              <li key={idx}>
-                                {`${option.name} - Price Modifier: ${option.priceModifier}${option.needsQuotation ? " (Needs Quotation)" : ""}`}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                      {request.inputType === "dropdown" &&
+                        request.options &&
+                        request.options.length > 0 && (
+                          <div className="ml-4 text-sm text-gray-500">
+                            <p>Options:</p>
+                            <ul className="list-disc ml-4">
+                              {request.options.map((option, idx) => (
+                                <li key={idx}>
+                                  {`${option.name} - Price Modifier: ${
+                                    option.priceModifier
+                                  }${
+                                    option.needsQuotation
+                                      ? " (Needs Quotation)"
+                                      : ""
+                                  }`}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                     </div>
                     <Button
                       type="button"
@@ -500,7 +635,7 @@ export function AddSubServices({
                 ))}
               </ul>
             </div>
-            <div className="flex flex-col p-2 space-y-2">
+            {/* <div className="flex flex-col p-2 space-y-2">
               <label htmlFor="price" className="text-sm font-medium">
                 Price
               </label>
@@ -514,10 +649,10 @@ export function AddSubServices({
                 className="rounded-md"
                 required
               />
-            </div>
+            </div> */}
 
             {/* Period Dropdown */}
-            <div className="flex flex-col p-2 space-y-2">
+            {/* <div className="flex flex-col p-2 space-y-2">
               <label htmlFor="period" className="text-sm font-medium">
                 Billing Period
               </label>
@@ -534,15 +669,155 @@ export function AddSubServices({
                 <option value="yearly">Yearly</option>
                 <option value="one_time">One-Time</option>
               </select>
+            </div> */}
+            <div className="flex flex-col p-2 space-y-2">
+              <label htmlFor="period" className="text-sm font-medium">
+                Billing Period & Pricing
+              </label>
+              <div className="flex items-center">
+                <Switch
+                  checked={isMonthlyBillingChecked}
+                  onCheckedChange={(checked) => {
+                    setIsMonthlyBillingChecked(checked);
+                    handlePricingStructureChange(
+                      "monthly",
+                      checked ? monthlyBillingPrice : ""
+                    );
+                  }}
+                />
+                <span className="ml-2">Monthly</span>
+              </div>
+              {isMonthlyBillingChecked && (
+                <Input
+                  id="monthly-price"
+                  name="monthlyBillingPrice"
+                  placeholder="Enter monthly price"
+                  className="rounded-md"
+                  type="number"
+                  value={monthlyBillingPrice}
+                  onChange={(e) => {
+                    setMonthlyBillingPrice(e.target.value);
+                    handlePricingStructureChange("monthly", e.target.value);
+                  }}
+                />
+              )}
+              <div className="flex items-center">
+                <Switch
+                  checked={isQuarterlyBillingChecked}
+                  onCheckedChange={(checked) => {
+                    setIsQuarterlyBillingChecked(checked);
+                    handlePricingStructureChange(
+                      "quarterly",
+                      checked ? quarterlyBillingPrice : ""
+                    );
+                  }}
+                />
+                <span className="ml-2">Quarterly</span>
+              </div>
+              {isQuarterlyBillingChecked && (
+                <Input
+                  id="quarterly-price"
+                  name="quarterlyBillingPrice"
+                  placeholder="Enter quarterly price"
+                  className="rounded-md"
+                  type="number"
+                  value={quarterlyBillingPrice}
+                  onChange={(e) => {
+                    setQuarterlyBillingPrice(e.target.value);
+                    handlePricingStructureChange("quarterly", e.target.value);
+                  }}
+                />
+              )}
+              <div className="flex items-center">
+                <Switch
+                  checked={isHalfYearlyBillingChecked}
+                  onCheckedChange={(checked) => {
+                    setIsHalfYearlyBillingChecked(checked);
+                    handlePricingStructureChange(
+                      "half_yearly",
+                      checked ? halfYearlyBillingPrice : ""
+                    );
+                  }}
+                />
+                <span className="ml-2">Half-Yearly</span>
+              </div>
+              {isHalfYearlyBillingChecked && (
+                <Input
+                  id="half-yearly-price"
+                  name="halfYearlyBillingPrice"
+                  placeholder="Enter half-yearly price"
+                  className="rounded-md"
+                  type="number"
+                  value={halfYearlyBillingPrice}
+                  onChange={(e) => {
+                    setHalfYearlyBillingPrice(e.target.value);
+                    handlePricingStructureChange("half_yearly", e.target.value);
+                  }}
+                />
+              )}
+              <div className="flex items-center">
+                <Switch
+                  checked={isYearlyBillingChecked}
+                  onCheckedChange={(checked) => {
+                    setIsYearlyBillingChecked(checked);
+                    handlePricingStructureChange(
+                      "yearly",
+                      checked ? yearlyBillingPrice : ""
+                    );
+                  }}
+                />
+                <span className="ml-2">Yearly</span>
+              </div>
+              {isYearlyBillingChecked && (
+                <Input
+                  id="yearly-price"
+                  name="yearlyBillingPrice"
+                  placeholder="Enter yearly price"
+                  className="rounded-md"
+                  type="number"
+                  value={yearlyBillingPrice}
+                  onChange={(e) => {
+                    setYearlyBillingPrice(e.target.value);
+                    handlePricingStructureChange("yearly", e.target.value);
+                  }}
+                />
+              )}
+              <div className="flex items-center">
+                <Switch
+                  checked={isOneTimeBillingChecked}
+                  onCheckedChange={(checked) => {
+                    setIsOneTimeBillingChecked(checked);
+                    handlePricingStructureChange(
+                      "one_time",
+                      checked ? oneTimeBillingPrice : ""
+                    );
+                  }}
+                />
+                <span className="ml-2">One-Time</span>
+              </div>
+              {isOneTimeBillingChecked && (
+                <Input
+                  id="one-time-price"
+                  name="oneTimeBillingPrice"
+                  placeholder="Enter one-time price"
+                  className="rounded-md"
+                  type="number"
+                  value={oneTimeBillingPrice}
+                  onChange={(e) => {
+                    setOneTimeBillingPrice(e.target.value);
+                    handlePricingStructureChange("one_time", e.target.value);
+                  }}
+                />
+              )}
             </div>
           </ScrollArea>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? "Saving..." : isEdit ? "Update Sub Service" : "Create Sub Service"}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading
+              ? "Saving..."
+              : isEdit
+              ? "Update Sub Service"
+              : "Create Sub Service"}
           </Button>
         </form>
       </DialogContent>
