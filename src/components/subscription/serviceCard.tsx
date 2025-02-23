@@ -27,6 +27,8 @@ const DEFAULT_FREQUENCY = "Monthly/Annually";
 const DEFAULT_FEATURES = ["Feature A", "Feature B", "Feature C"];
 const DEFAULT_PRICING = "Rs__";
 
+const toastCounter = new Map<string, number>();
+
 export function ServiceCard({
   _id,
   title,
@@ -60,7 +62,18 @@ export function ServiceCard({
       const response = await SERVICES.ToggleService(_id);
       console.log(response.data);
       setIsActive(response.data.service.isActive);
-      showSucccess("Changed Successfully");
+
+      // Update the toast counter for this service
+      const currentCount = toastCounter.get(_id) || 0;
+
+      if (currentCount < 2) {
+        // if (response.data.service.isActive) {
+        //   showSucccess("Activated Successfully");
+        // } else {
+        showSucccess("Changed Successfully");
+        // }
+        toastCounter.set(_id, currentCount + 1);
+      }
     } catch (error) {
       console.error(error);
       showError("Error in changing status");
