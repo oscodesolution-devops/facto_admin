@@ -72,8 +72,6 @@ interface Course {
   status: string; // ISO date string
 }
 
-
-
 export default function CourseTable() {
   const [searchTerm, setSearchTerm] = useState<string>(""); // Type inferred
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
@@ -88,6 +86,26 @@ export default function CourseTable() {
       console.log(data);
       if (data.success) {
         setCourses(data.data);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong");
+    }
+  };
+  const deleteCourse = async (courseId: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this course? This action cannot be undone."
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const data = await COURSES.DeleteCourse(courseId);
+      console.log(data);
+      if (data.success) {
+        toast.success("Course deleted successfully");
+        fetchCourses();
       }
     } catch (error) {
       console.log(error);
@@ -173,6 +191,7 @@ export default function CourseTable() {
             <TableHead>Status</TableHead>
             <TableHead>View</TableHead>
             <TableHead>Edit</TableHead>
+            <TableHead>Delete</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -204,6 +223,11 @@ export default function CourseTable() {
               <TableCell>
                 <Button onClick={() => handleEdit(course._id)}>
                   Edit Details
+                </Button>
+              </TableCell>
+              <TableCell>
+                <Button onClick={() => deleteCourse(course._id)}>
+                  Delete Course
                 </Button>
               </TableCell>
             </TableRow>
