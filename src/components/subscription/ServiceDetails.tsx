@@ -13,7 +13,7 @@ import { AddSubServices } from "./AddSubServices";
 import { Button } from "../ui/button";
 import { SUBSERVICES } from "@/api/sub-services";
 import { showError, showSucccess } from "@/utils/toast";
-import { ReqDocModal } from "./ReqDocModal"; 
+import { ReqDocModal } from "./ReqDocModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,8 +47,8 @@ const ServiceDetails = () => {
   const [viewSubService, setViewSubService] = useState<SubService | null>(null);
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false); //for add sub services
-  const [reqDocModalOpen, setReqDocModalOpen] = useState(false);  //for req doc add
-  const [selectedSubServiceId, setSelectedSubServiceId] = useState<string>(""); //post req doc 
+  const [reqDocModalOpen, setReqDocModalOpen] = useState(false); //for req doc add
+  const [selectedSubServiceId, setSelectedSubServiceId] = useState<string>(""); //post req doc
 
   const openModal = () => {
     console.log("Opening modal");
@@ -90,7 +90,7 @@ const ServiceDetails = () => {
 
   useEffect(() => {
     fetchSubServices();
-  }, [_id]); 
+  }, [_id]);
 
   // delete sub service
   const handleDelete = async (id: string) => {
@@ -105,27 +105,28 @@ const ServiceDetails = () => {
     }
   };
 
-
   const [activeSubService, setActiveSubService] = useState<string>("");
   const [reqDocData, setReqDocData] = useState<ReqDocType[]>([]);
 
   // fetch doc need sub service id
-    const fetchDocuments = async () => {
-        try {
-          console.log("Fetching Documents for sub service ID:", activeSubService);
-          const response = await DOCUMENTS.GetDocumentsBySubServices(activeSubService);
-          console.log("API response:", response.data.subServiceRequirements);
-          setReqDocData(response.data.subServiceRequirements);
-          // showSucccess(response.message);
-        } catch (error) {
-          console.error("Error fetching subservices:", error);
-          // showError("There's an error in fetching data");
-        }
-      };
-    
-      useEffect(() => {
-        fetchDocuments();
-      }, [activeSubService]); 
+  const fetchDocuments = async () => {
+    try {
+      console.log("Fetching Documents for sub service ID:", activeSubService);
+      const response = await DOCUMENTS.GetDocumentsBySubServices(
+        activeSubService
+      );
+      console.log("API response:", response.data.subServiceRequirements);
+      setReqDocData(response.data.subServiceRequirements);
+      // showSucccess(response.message);
+    } catch (error) {
+      console.error("Error fetching subservices:", error);
+      // showError("There's an error in fetching data");
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [activeSubService]);
 
   const handleView = (subService: SubService) => {
     console.log("Viewing subservice:", subService);
@@ -152,8 +153,8 @@ const ServiceDetails = () => {
                 <div className="flex justify-between items-center">
                   <div
                     className="text-primary font-semibold"
-                    onClick={() =>{
-                      setActiveFeature(activeFeature === index ? null : index)
+                    onClick={() => {
+                      setActiveFeature(activeFeature === index ? null : index);
                       setActiveSubService(subService._id);
                     }}
                   >
@@ -162,7 +163,11 @@ const ServiceDetails = () => {
                   {/* Three-dot menu for subservice actions */}
                   <DropdownMenu>
                     <DropdownMenuTrigger>
-                      <Button variant="ghost" size="icon" className="text-white bg-[#253483] font-extrabold" >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-white bg-[#253483] font-extrabold"
+                      >
                         ⋮
                       </Button>
                     </DropdownMenuTrigger>
@@ -202,11 +207,13 @@ const ServiceDetails = () => {
                       <strong>Is Active:</strong>{" "}
                       {subService.isActive ? "Yes" : "No"}
                     </p>
-                    <ReqDocCard fetchDocuments={fetchDocuments} reqDocData={reqDocData} id={subService._id}/>
+                    <ReqDocCard
+                      fetchDocuments={fetchDocuments}
+                      reqDocData={reqDocData}
+                      id={subService._id}
+                    />
                   </div>
-                  
                 )}
-
               </li>
             ))}
           </ul>
@@ -227,11 +234,14 @@ const ServiceDetails = () => {
       />
 
       {/* Required Documents Modal */}
-      <ReqDocModal fetchDocuments={fetchDocuments}  id={selectedSubServiceId} isOpen={reqDocModalOpen} onClose={closeReqDocModal} />
-   
+      <ReqDocModal
+        fetchDocuments={fetchDocuments}
+        id={selectedSubServiceId}
+        isOpen={reqDocModalOpen}
+        onClose={closeReqDocModal}
+      />
     </div>
   );
 };
 
 export default ServiceDetails;
-
