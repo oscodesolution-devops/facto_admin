@@ -56,7 +56,6 @@ interface ServerLecture {
 }
 
 interface AdvanceInformationProps {
-  
   onSave: (data: any) => void;
   setTab: (data: string) => void;
 }
@@ -70,70 +69,51 @@ export default function AdvanceInformation({
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [currentLectureId, setCurrentLectureId] = useState(1);
   const [isUploading, setIsUploading] = useState(false);
-  const [isLoading,setIsLoading] = useState(true);
-  console.log(currentLectureId)
+  const [isLoading, setIsLoading] = useState(true);
+  console.log(currentLectureId);
   useEffect(() => {
-    // if (!noOfLecture && !courseId) {
-    //   toast.warning("Fill the Basic Form First");
-    //   setTab("basic");
-    //   return;
-    // }
-    
-    // const initialLectures = Array.from({ length: noOfLecture }, (_, index) => ({
-    //   id: index + 1,
-    //   title: `Lecture ${index + 1}`,
-    //   isOpen: index === 0,
-    //   subtitle: "",
-    //   language: "english",
-    //   subtitleLanguage: "",
-    //   duration: {
-    //     value: "",
-    //     unit: "minutes",
-    //   },
-    //   courseLevel: "beginner",
-    //   isFree: false,
-    // }));
-    // setLectures(initialLectures);
-
-    // Fetch existing lectures if courseId is available
     if (courseId) {
       fetchExistingLectures();
-    }else{
+    } else {
       setIsLoading(false);
-      toast.warning("Fill the Basic Form First");
-      setTab("basic");
-      return;
+      const checkTimer = setTimeout(() => {
+        if (!courseId) {
+          toast.warning("Please fill the basic form first");
+          setTab("basic");
+        }
+      }, 500);
+
+      return () => clearTimeout(checkTimer);
     }
-     
-    
   }, [courseId]);
 
   const fetchExistingLectures = async () => {
     try {
-      const course = await COURSES.GetCoursesById(courseId??"");
-      console.log(course)
-      if(course.success){
-
-        const response = await COURSES.GetLectures(courseId??"");
+      const course = await COURSES.GetCoursesById(courseId ?? "");
+      console.log(course);
+      if (course.success) {
+        const response = await COURSES.GetLectures(courseId ?? "");
         if (response.success) {
-          const existingLectures = response.data.lectures.map((lecture: ServerLecture) => ({
-            id: lecture.lectureNumber,
-            title: lecture.title,
-            isOpen: false,
-            subtitle: lecture.subtitle,
-            language: lecture.language,
-            subtitleLanguage: lecture.subtitleLanguage,
-            duration: lecture.duration,
-            courseLevel: lecture.courseLevel,
-            isFree: lecture.isFree,
-            thumbnailUrl: lecture.thumbnail,
-            videoUrl: lecture.videoUrl,
-            _id: lecture._id,
-          }));
+          const existingLectures = response.data.lectures.map(
+            (lecture: ServerLecture) => ({
+              id: lecture.lectureNumber,
+              title: lecture.title,
+              isOpen: false,
+              subtitle: lecture.subtitle,
+              language: lecture.language,
+              subtitleLanguage: lecture.subtitleLanguage,
+              duration: lecture.duration,
+              courseLevel: lecture.courseLevel,
+              isFree: lecture.isFree,
+              thumbnailUrl: lecture.thumbnail,
+              videoUrl: lecture.videoUrl,
+              _id: lecture._id,
+            })
+          );
           // console.log(existingLectures.length < course.data.totalLectures)
           if (existingLectures.length < course.data.totalLectures) {
             const additionalLectures = Array.from(
-              { length: course.data.totalLectures - existingLectures.length  },
+              { length: course.data.totalLectures - existingLectures.length },
               (_, index) => ({
                 id: existingLectures.length + index + 1,
                 title: `Lecture ${existingLectures.length + index + 1}`,
@@ -152,28 +132,26 @@ export default function AdvanceInformation({
                 _id: null, // Placeholder for lectures not saved to the server yet
               })
             );
-  
-            console.log(additionalLectures)
-    
+
+            console.log(additionalLectures);
+
             // Combine existing lectures with additional lectures
             setLectures([...existingLectures, ...additionalLectures]);
-  
           } else {
             setLectures(existingLectures);
           }
-          setCurrentLectureId(existingLectures.length+1)
+          setCurrentLectureId(existingLectures.length + 1);
           // setLectures(existingLectures);
         }
       }
     } catch (error) {
       console.error("Error fetching existing lectures:", error);
       toast.error("Failed to fetch existing lectures");
-    }finally{
+    } finally {
       setIsLoading(false);
     }
   };
 
-  
   if (isLoading) return <p>Loading...</p>;
 
   const toggleLecture = (id: number) => {
@@ -192,7 +170,11 @@ export default function AdvanceInformation({
     );
   };
 
-  const handleFileChange = (id: number, type: 'video' | 'thumbnail', file: File) => {
+  const handleFileChange = (
+    id: number,
+    type: "video" | "thumbnail",
+    file: File
+  ) => {
     updateLecture(id, { [type]: file });
   };
 
@@ -204,33 +186,37 @@ export default function AdvanceInformation({
     setIsUploading(true);
 
     try {
-      const lecture = lectures.find(l => l.id === id);
+      const lecture = lectures.find((l) => l.id === id);
       if (!lecture) throw new Error("Lecture not found");
 
       const formData = new FormData();
-      if (lecture.video) formData.append('video', lecture.video);
-      if (lecture.thumbnail) formData.append('thumbnail', lecture.thumbnail);
-      formData.append('title', lecture.title);
-      formData.append('subtitle', lecture.subtitle);
-      formData.append('lectureNumber', String(lecture.id));
-      formData.append('language', lecture.language);
-      formData.append('subtitleLanguage', lecture.subtitleLanguage);
-      formData.append('duration', JSON.stringify(lecture.duration));
-      formData.append('courseLevel', lecture.courseLevel);
-      formData.append('isFree', String(lecture.isFree));
+      if (lecture.video) formData.append("video", lecture.video);
+      if (lecture.thumbnail) formData.append("thumbnail", lecture.thumbnail);
+      formData.append("title", lecture.title);
+      formData.append("subtitle", lecture.subtitle);
+      formData.append("lectureNumber", String(lecture.id));
+      formData.append("language", lecture.language);
+      formData.append("subtitleLanguage", lecture.subtitleLanguage);
+      formData.append("duration", JSON.stringify(lecture.duration));
+      formData.append("courseLevel", lecture.courseLevel);
+      formData.append("isFree", String(lecture.isFree));
 
       let response;
       if (lecture._id) {
         // Update existing lecture
-        response = await COURSES.UpdateLecture(formData, courseId??"", lecture._id);
+        response = await COURSES.UpdateLecture(
+          formData,
+          courseId ?? "",
+          lecture._id
+        );
       } else {
         // Add new lecture
-        response = await COURSES.PostLecture(formData, courseId??"");
+        response = await COURSES.PostLecture(formData, courseId ?? "");
       }
 
       if (response.success) {
         const serverLecture: ServerLecture = response.data.lecture;
-        
+
         // Update the lecture with server data
         updateLecture(id, {
           _id: serverLecture._id,
@@ -238,19 +224,25 @@ export default function AdvanceInformation({
           videoUrl: serverLecture.videoUrl,
         });
 
-        toast.success(lecture._id ? "Lecture updated successfully" : "Lecture added successfully");
+        toast.success(
+          lecture._id
+            ? "Lecture updated successfully"
+            : "Lecture added successfully"
+        );
         toggleLecture(id);
 
         // Move to next lecture if available
-       
-          setCurrentLectureId(id + 1);
-          toggleLecture(id + 1);
+
+        setCurrentLectureId(id + 1);
+        toggleLecture(id + 1);
       } else {
-        toast.error(response.status.message || "Failed to save lecture");
+        toast.error(response?.data?.message ?? "Failed to save lecture");
       }
     } catch (error) {
       console.error("Error saving lecture:", error);
-      toast.error("Failed to save lecture");
+      toast.error(
+        (error as any)?.response?.data?.message ?? "Failed to save lecture"
+      );
     } finally {
       setIsUploading(false);
     }
@@ -489,7 +481,7 @@ export default function AdvanceInformation({
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) handleFileChange(lecture.id, 'thumbnail', file);
+                      if (file) handleFileChange(lecture.id, "thumbnail", file);
                     }}
                     className="rounded-md border p-2"
                   />
@@ -514,7 +506,7 @@ export default function AdvanceInformation({
                     accept="video/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) handleFileChange(lecture.id, 'video', file);
+                      if (file) handleFileChange(lecture.id, "video", file);
                     }}
                     className="rounded-md border p-2"
                   />
@@ -528,12 +520,12 @@ export default function AdvanceInformation({
                 </div>
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={isUploading}
-              >
-                {isUploading ? "Uploading..." : lecture._id ? "Update Lecture" : "Save Lecture"}
+              <Button type="submit" className="w-full" disabled={isUploading}>
+                {isUploading
+                  ? "Uploading..."
+                  : lecture._id
+                  ? "Update Lecture"
+                  : "Save Lecture"}
               </Button>
             </form>
           </CollapsibleContent>
@@ -541,7 +533,14 @@ export default function AdvanceInformation({
       ))}
 
       <div className="flex flex-col md:flex-row justify-between gap-4 mt-8">
-        <Button variant="outline" size="lg" className="w-full md:w-auto" onClick={()=>{setTab("basic")}}>
+        <Button
+          variant="outline"
+          size="lg"
+          className="w-full md:w-auto"
+          onClick={() => {
+            setTab("basic");
+          }}
+        >
           Back
         </Button>
         <Button

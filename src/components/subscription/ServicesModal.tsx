@@ -18,7 +18,11 @@ interface ServiceModalProps {
   onServiceAdded: () => void;
 }
 
-export function ServiceModal({ isOpen, onClose, onServiceAdded }: ServiceModalProps) {
+export function ServiceModal({
+  isOpen,
+  onClose,
+  onServiceAdded,
+}: ServiceModalProps) {
   const [loading, setLoading] = useState(false);
   const [icon, setIcon] = useState<File | null>(null);
   const [currentFeature, setCurrentFeature] = useState("");
@@ -27,7 +31,7 @@ export function ServiceModal({ isOpen, onClose, onServiceAdded }: ServiceModalPr
     title: "",
     description: "",
     category: "",
-    features: [] as string[]
+    features: [] as string[],
   });
 
   const handleChange = (
@@ -45,23 +49,23 @@ export function ServiceModal({ isOpen, onClose, onServiceAdded }: ServiceModalPr
 
   const handleAddFeature = () => {
     if (currentFeature.trim()) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        features: [...prev.features, currentFeature.trim()]
+        features: [...prev.features, currentFeature.trim()],
       }));
       setCurrentFeature("");
     }
   };
 
   const handleRemoveFeature = (indexToRemove: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      features: prev.features.filter((_, index) => index !== indexToRemove)
+      features: prev.features.filter((_, index) => index !== indexToRemove),
     }));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleAddFeature();
     }
@@ -74,43 +78,47 @@ export function ServiceModal({ isOpen, onClose, onServiceAdded }: ServiceModalPr
     try {
       // Create FormData object
       const submitFormData = new FormData();
-      
+
       // Append text fields
-      submitFormData.append('title', formData.title);
-      submitFormData.append('description', formData.description);
-      submitFormData.append('category', formData.category);
-      
+      submitFormData.append("title", formData.title);
+      submitFormData.append("description", formData.description);
+      submitFormData.append("category", formData.category);
+
       // Append features array as JSON string
-      submitFormData.append('features', JSON.stringify(formData.features));
-      
+      submitFormData.append("features", JSON.stringify(formData.features));
+
       // Append icon if selected
       if (icon) {
-        submitFormData.append('icon', icon);
+        submitFormData.append("icon", icon);
       }
-      console.log(icon)
+      console.log(icon);
       const response = await SERVICES.PostService(submitFormData);
 
       if (response.success) {
         onClose();
         onServiceAdded();
-        
+
         // Reset form
         setFormData({
           title: "",
           description: "",
           category: "",
-          features: []
+          features: [],
         });
         setIcon(null);
         if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+          fileInputRef.current.value = "";
         }
       } else {
         showError(response.message || "An error occurred");
       }
     } catch (error) {
       console.error("Error during submit:", error);
-      showError("An error occurred while creating the service");
+      // showError("An error occurred while creating the service");
+      showError(
+        (error as any)?.response?.data?.message ??
+          "An error occurred while creating the service"
+      );
     } finally {
       setLoading(false);
     }
@@ -141,7 +149,7 @@ export function ServiceModal({ isOpen, onClose, onServiceAdded }: ServiceModalPr
             </label>
             <Input
               id="title"
-              name="title" 
+              name="title"
               value={formData.title}
               onChange={handleChange}
               placeholder="Service Title"
@@ -157,7 +165,7 @@ export function ServiceModal({ isOpen, onClose, onServiceAdded }: ServiceModalPr
             </label>
             <Textarea
               id="description"
-              name="description" 
+              name="description"
               value={formData.description}
               onChange={handleChange}
               placeholder="Service Description"
@@ -174,7 +182,7 @@ export function ServiceModal({ isOpen, onClose, onServiceAdded }: ServiceModalPr
             </label>
             <Input
               id="category"
-              name="category" 
+              name="category"
               value={formData.category}
               onChange={handleChange}
               placeholder="Service Category"
@@ -185,9 +193,7 @@ export function ServiceModal({ isOpen, onClose, onServiceAdded }: ServiceModalPr
 
           {/* Features Input */}
           <div className="flex flex-col p-2 space-y-2">
-            <label className="text-sm font-medium">
-              Service Features
-            </label>
+            <label className="text-sm font-medium">Service Features</label>
             <div className="flex gap-2">
               <Input
                 value={currentFeature}
@@ -204,7 +210,7 @@ export function ServiceModal({ isOpen, onClose, onServiceAdded }: ServiceModalPr
                 Add Feature
               </Button>
             </div>
-            
+
             {/* Features List */}
             <div className="flex flex-wrap gap-2 mt-2">
               {formData.features.map((feature, index) => (
@@ -227,9 +233,7 @@ export function ServiceModal({ isOpen, onClose, onServiceAdded }: ServiceModalPr
 
           {/* Icon Upload */}
           <div className="flex flex-col p-2 space-y-2">
-            <label className="text-sm font-medium">
-              Service Icon
-            </label>
+            <label className="text-sm font-medium">Service Icon</label>
             <input
               type="file"
               ref={fileInputRef}

@@ -90,6 +90,14 @@ export default function CourseForm() {
   useEffect(() => {
     if (courseId) {
       fetchCourse(courseId);
+
+      // Check if we have a saved tab state for this page
+      const savedTab = localStorage.getItem("currentCourseTab");
+      if (savedTab) {
+        setTab(savedTab);
+        // Clear it after using it
+        localStorage.removeItem("currentCourseTab");
+      }
     } else {
       setIsLoading(false);
     }
@@ -101,7 +109,7 @@ export default function CourseForm() {
         ...prevData,
         basic: basicData,
       }));
-      console.log("hi");
+      console.log("hi", basicData);
       try {
         let data;
         if (!courseId) {
@@ -116,15 +124,27 @@ export default function CourseForm() {
             basic: { ...basicData },
           }));
           toast.success("Basic Details Saved");
-          console.log(data);
-          navigate(`/courses/${data.data.course._id}`);
-          setTab("advance");
+
+          // Store the courseId and current tab in localStorage before navigation
+          const newCourseId = data.data.course._id;
+          localStorage.setItem("currentCourseTab", "advance");
+
+          // Navigate (will cause component to remount)
+          if (!courseId) {
+            navigate(`/courses/${newCourseId}`);
+          } else {
+            // Set tab directly if we're just updating an existing course
+            setTab("advance");
+          }
+
           console.log("Basic information saved:", data);
         } else {
           toast.error(data.status.message);
         }
       } catch (error) {
-        toast.error("Something went wrong");
+        toast.error(
+          (error as any)?.response?.data?.message ?? "Something went wrong"
+        );
         console.log(error);
       }
     } catch (error) {
@@ -144,7 +164,6 @@ export default function CourseForm() {
       console.error("Error saving advance information:", error);
     }
   };
-
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -181,10 +200,7 @@ export default function CourseForm() {
         </TabsContent>
 
         <TabsContent value="advance">
-          <AdvanceInformation
-            onSave={handleAdvanceSave}
-            setTab={setTab}
-          />
+          <AdvanceInformation onSave={handleAdvanceSave} setTab={setTab} />
         </TabsContent>
 
         <TabsContent value="publish">

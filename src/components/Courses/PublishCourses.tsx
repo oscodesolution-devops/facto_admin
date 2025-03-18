@@ -1,8 +1,14 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
-import { FaClock, FaSignal, FaBook, FaLanguage, FaClosedCaptioning } from "react-icons/fa";
+import {
+  FaClock,
+  FaSignal,
+  FaBook,
+  FaLanguage,
+  FaClosedCaptioning,
+} from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { COURSES } from "@/api/courses";
@@ -30,7 +36,7 @@ interface CourseData {
   }[];
 }
 
-const PublishCourse = ({ setTab }:{ setTab: (data: string) => void }) => {
+const PublishCourse = ({ setTab }: { setTab: (data: string) => void }) => {
   const { courseId } = useParams<{ courseId: string }>();
   const [isLoading, setIsLoading] = useState(true);
   const [courseData, setCourseData] = useState<CourseData | null>(null);
@@ -56,19 +62,20 @@ const PublishCourse = ({ setTab }:{ setTab: (data: string) => void }) => {
     fetchCourse();
   }, [courseId]);
 
-  const handlePublish = async() => {
+  const handlePublish = async () => {
     // Implement publish logic
-    try{
-      const response = await COURSES.PublishCourse(courseId??"")
-      if(response.success){
+    try {
+      const response = await COURSES.PublishCourse(courseId ?? "");
+      if (response.success) {
         toast.success("Course published successfully");
       }
-    }catch(error){
+    } catch (error) {
+      toast.error(
+        (error as any)?.response?.data?.message ?? "Something went wrong"
+      );
       toast.error("Something Went Wrong");
     }
   };
-
-  
 
   if (isLoading) return <p>Loading...</p>;
 
@@ -93,9 +100,9 @@ const PublishCourse = ({ setTab }:{ setTab: (data: string) => void }) => {
           <div className="flex flex-col md:flex-row items-start gap-4">
             <div className="aspect-video bg-gray-200 w-full md:w-2/3 flex items-center justify-center">
               {lecture.thumbnail ? (
-                <img 
-                  src={lecture.thumbnail} 
-                  alt={`Lecture ${lecture.lectureNumber} thumbnail`} 
+                <img
+                  src={lecture.thumbnail}
+                  alt={`Lecture ${lecture.lectureNumber} thumbnail`}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -132,19 +139,23 @@ const PublishCourse = ({ setTab }:{ setTab: (data: string) => void }) => {
                 <div className="flex items-center gap-2">
                   <FaClosedCaptioning className="text-gray-500" />
                   <p>
-                    <strong>Subtitle Language:</strong> {lecture.subtitleLanguage}
+                    <strong>Subtitle Language:</strong>{" "}
+                    {lecture.subtitleLanguage}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <FaClock className="text-gray-500" />
                   <p>
-                    <strong>Duration:</strong> {lecture.duration.value} {lecture.duration.unit}
+                    <strong>Duration:</strong> {lecture.duration.value}{" "}
+                    {lecture.duration.unit}
                   </p>
                 </div>
               </CardContent>
             </Card>
           </div>
-          {index !== courseData.lectures.length - 1 && <Separator className="my-4" />}
+          {index !== courseData.lectures.length - 1 && (
+            <Separator className="my-4" />
+          )}
         </div>
       ))}
 
@@ -153,11 +164,14 @@ const PublishCourse = ({ setTab }:{ setTab: (data: string) => void }) => {
         <h2 className="text-lg font-semibold">Description</h2>
         <p className="text-gray-600 mt-2">{courseData.description}</p>
       </div>
-      
+
       <div className="flex gap-4">
-        <Button variant="outline" onClick={ () => {
-    setTab("advance");
-  }}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setTab("advance");
+          }}
+        >
           Back
         </Button>
         <Button onClick={handlePublish}>Publish Course</Button>

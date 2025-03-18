@@ -25,6 +25,7 @@ import { showError, showSucccess } from "@/utils/toast";
 import { FileText } from "lucide-react";
 import PricingDialog from "@/components/Quotation/pricing-dialog";
 import axios from "axios";
+import { BASE_URL } from "@/utils/apiConstants";
 
 interface User {
   _id: string;
@@ -66,7 +67,11 @@ type BillingPeriod =
   | "yearly"
   | "one_time";
 
-export default function MultiStepQuotationForm({setShowForm}:{setShowForm: React.Dispatch<React.SetStateAction<boolean>>}) {
+export default function MultiStepQuotationForm({
+  setShowForm,
+}: {
+  setShowForm: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const [step, setStep] = useState(1);
   const [selectedUser, setSelectedUser] = useState("");
   const [selectedService, setSelectedService] = useState("");
@@ -151,7 +156,7 @@ export default function MultiStepQuotationForm({setShowForm}:{setShowForm: React
     });
     try {
       const response = await axios.post(
-        "https://admin.facto.org.in/api/v1/admin/quotation",
+        `${BASE_URL}/quotation`,
         {
           userId: selectedUser,
           subServiceId: selectedSubService,
@@ -164,8 +169,8 @@ export default function MultiStepQuotationForm({setShowForm}:{setShowForm: React
           },
         }
       );
-      if(response.data.success){
-          showSucccess("Quotation created successfully");
+      if (response.data.success) {
+        showSucccess("Quotation created successfully");
         setShowForm(false);
       }
     } catch (err) {
@@ -180,9 +185,9 @@ export default function MultiStepQuotationForm({setShowForm}:{setShowForm: React
     setBillingPeriod("monthly");
     setPrice("");
   };
- if(loading){
-    return <>Loading</>
- }
+  if (loading) {
+    return <>Loading</>;
+  }
   return (
     <Card className="w-[350px]">
       <CardHeader>
