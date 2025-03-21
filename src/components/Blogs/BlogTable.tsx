@@ -67,6 +67,7 @@ export default function BlogsTable({
     setIsModalOpen(false);
   };
 
+
   // Filter blogs based on search query
   const filteredBlogs = Array.isArray(blogsData)
     ? blogsData.filter((blog) =>

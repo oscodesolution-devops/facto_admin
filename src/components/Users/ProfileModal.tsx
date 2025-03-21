@@ -111,9 +111,9 @@ export function ProfileModal({
                 <p className="text-gray-500 text-base">{formData.email}</p>
               </div>
             </div>
-            <div className="space-x-2">
+            {/* <div className="space-x-2">
               <Button variant="outline">Payment History</Button>
-            </div>
+            </div> */}
           </div>
         </DialogHeader>
 
@@ -151,10 +151,12 @@ export function ProfileModal({
             </label>
             <Input
               name="phoneNumber"
+              type="number"
               placeholder="Phone number"
               value={formData.phoneNumber || ""}
               onChange={handleInputChange}
               disabled={!isEditing}
+              maxLength={10}
             />
           </div>
 
@@ -180,10 +182,12 @@ export function ProfileModal({
             </label>
             <Input
               name="aadharNumber"
+              type="number"
               placeholder="Aadhar Number"
               value={formData.aadharNumber || ""}
               onChange={handleInputChange}
               disabled={!isEditing}
+              maxLength={12}
             />
           </div>
 

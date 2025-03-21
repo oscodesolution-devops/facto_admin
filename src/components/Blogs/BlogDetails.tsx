@@ -118,12 +118,13 @@ export function BlogDetails({ isOpen, onClose, fetchData, blogsData }: BlogDetai
       const response = isEdit
         ? await BLOGS.Update(formDataToSend)
         : await BLOGS.PostBlogs(formDataToSend)
-        console.log(response)
+      console.log(response)
 
       if (response.success) {
         handleCloseModal()
         fetchData?.()
         showSucccess(response.message || `Blog ${isEdit ? 'updated' : 'created'} successfully`)
+        window.location.reload()
       } else {
         showError(response.message || "An error occurred")
       }
@@ -221,9 +222,10 @@ export function BlogDetails({ isOpen, onClose, fetchData, blogsData }: BlogDetai
                 <label htmlFor="blog-tags" className="text-sm font-medium">
                   Tags (comma-separated)
                 </label>
-                <Input
+                {/* <Input
                   id="blog-tags"
                   name="tags"
+                  
                   placeholder="Enter tags, separated by commas"
                   value={formData.tags.join(", ")}
                   onChange={(e) =>
@@ -235,7 +237,32 @@ export function BlogDetails({ isOpen, onClose, fetchData, blogsData }: BlogDetai
                         .filter((tag) => tag),
                     }))
                   }
+                /> */}
+
+                <Input
+                  type="text"
+                  placeholder="Enter tags, separated by commas"
+                  value={formData.tags.join(", ")}
+                  onKeyDown={(e) => {
+                    if (e.key === ",") {
+                      e.preventDefault(); 
+                      setFormData((prev) => ({
+                        ...prev,
+                        tags: [...prev.tags, ""], 
+                      }));
+                    }
+                  }}
+                  onChange={(e) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      tags: e.target.value
+                        .split(",")
+                        .map((tag) => tag.trim())
+                        .filter((tag) => tag),
+                    }));
+                  }}
                 />
+
               </div>
             </div>
           </ScrollArea>
